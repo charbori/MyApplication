@@ -19,7 +19,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".MenuActivity">
+        <activity android:name=".MenuActivity"
+            android:theme="@style/App2Theme">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
             </intent-filter>

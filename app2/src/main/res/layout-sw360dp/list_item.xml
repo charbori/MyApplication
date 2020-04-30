@@ -9,12 +9,14 @@
 
     <TextView
         android:id="@+id/name"
+        android:textColor="@color/colorPrimaryDark"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.5"/>
 
     <TextView
         android:id="@+id/phone"
+        android:textColor="@color/colorPrimaryDark"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="0.5"/>

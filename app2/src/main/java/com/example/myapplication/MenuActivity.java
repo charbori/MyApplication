@@ -3,18 +3,22 @@ package com.example.myapplication;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DataSetObserver;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.myapplication.controller.ListAdapter;
+import com.example.myapplication.data.model.MyListItem;
 import com.example.myapplication.lib.FeedReaderContract;
 import com.example.myapplication.lib.FeedReaderDbHelper;
 import com.google.android.material.button.MaterialButton;
@@ -22,17 +26,19 @@ import com.google.android.material.button.MaterialButton;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static android.widget.Toast.LENGTH_SHORT;
+
 public class MenuActivity extends AppCompatActivity {
 
     HashMap<String, String> str = new HashMap<String, String>();
 
     ArrayList<String> title, subtitle;
-    ArrayList<HashMap<String, String>> personList;
+    ArrayList<MyListItem> personList;
     ListView list;
     private static final String TAG_PHONE = "phone";
 
     SQLiteDatabase sampleDB = null;
-    ListAdapter adapter;
+    ListAdapter adapter, listAdapter;
 
     MaterialButton btRefresh, btInsertData, btUpdate, btDelete;
 
@@ -70,12 +76,12 @@ public class MenuActivity extends AppCompatActivity {
 
         sampleDB = context.openOrCreateDatabase(FeedReaderDbHelper.DATABASE_NAME, context.MODE_PRIVATE,null);
 
-        personList = new ArrayList<HashMap<String, String>>();
+        personList = new ArrayList<MyListItem>();
 
         //dbHelper.onCreate(sampleDB);
         //initInsertEntryDB(title, subtitle);
-        getEntryDB();
         showList();
+        getEntryDB();
 
         setViewListener();
 
@@ -84,14 +90,16 @@ public class MenuActivity extends AppCompatActivity {
     protected void showList(){
 
         if(personList != null){
-            adapter = new SimpleAdapter(
-                    this, personList, R.layout.list_item,
-                    new String[]{FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE,
-                            FeedReaderContract.FeedEntry.COLUMN_NAME_SUBTITLE},
-                    new int[]{R.id.name, R.id.phone}
-            );
+//            adapter = new SimpleAdapter(
+//                    this, personList, R.layout.list_item,
+//                    new String[]{FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE,
+//                            FeedReaderContract.FeedEntry.COLUMN_NAME_SUBTITLE},
+//                    new int[]{R.id.name, R.id.phone}
+//            );
 
-            list.setAdapter(adapter);
+            listAdapter = new ListAdapter(this, R.layout.list_item, personList);
+
+            list.setAdapter(listAdapter);
 
         }else{
             Log.d("db","personList data is none");
@@ -113,8 +121,13 @@ public class MenuActivity extends AppCompatActivity {
 
             Log.d("db","db insert success");
         }
+
     }
 
+    void updateListView(){
+
+
+    }
     void getEntryDB(){
 
         String[] projection = {
@@ -145,14 +158,15 @@ public class MenuActivity extends AppCompatActivity {
             Log.d("db","data title : " + strTitle);
             Log.d("db","data subtitle : " + strSubtitle);
 
-            str.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, strTitle);
-            str.put(FeedReaderContract.FeedEntry.COLUMN_NAME_SUBTITLE, strSubtitle);
+            MyListItem myItem = new MyListItem();
+
+            myItem.SetName(strTitle);
+            myItem.SetContents(strSubtitle);
 
             if(str != null){
-                personList.add(str);
+                personList.add(myItem);
             }else{
                 Log.d("db","data none");
-                personList.add(str);
             }
         }
 
@@ -175,7 +189,25 @@ public class MenuActivity extends AppCompatActivity {
                 tempData.put(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE, "tempTest");
                 tempData.put(FeedReaderContract.FeedEntry.COLUMN_NAME_SUBTITLE, "tempInsertTestData");
 
+                MyListItem myListItem = new MyListItem();
+                myListItem.SetName(tempData.get(FeedReaderContract.FeedEntry.COLUMN_NAME_TITLE));
+                myListItem.SetContents(tempData.get(FeedReaderContract.FeedEntry.COLUMN_NAME_SUBTITLE));
+
+                //
                 initInsertEntryDB(tempData);
+
+                Toast.makeText(getApplicationContext(), "size:" + listAdapter.getCount(),LENGTH_SHORT).show();
+
+                personList.add(myListItem);
+
+                MenuActivity.this.runOnUiThread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                listAdapter.updateList(personList);
+                            }
+                        }
+                );
             }
         });
 

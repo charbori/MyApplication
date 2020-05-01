@@ -3,40 +3,34 @@ package com.example.myapplication.controller;
 import android.content.Context;
 import android.database.DataSetObserver;
 import android.os.Handler;
-import android.text.Layout;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
+import android.widget.CheckBox;
 import android.widget.TextView;
-
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.myapplication.R;
 import com.example.myapplication.data.model.MyListItem;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
-public class ListAdapter extends ArrayAdapter<MyListItem>{
+public class SelectedListAdapter extends ArrayAdapter<MyListItem> {
 
     private ArrayList<MyListItem> personList;
     private Context context;
     private int rowResourceId;
-    private LinearLayout newListLayout;
+    private Handler handler;
 
-    public ListAdapter(Context context, int textViewResourceId, ArrayList<MyListItem> list){
+    public SelectedListAdapter(Context context, int textViewResourceId, ArrayList<MyListItem> list, Handler handler){
         super(context, textViewResourceId, list);
 
         this.context = context;
         this.rowResourceId = textViewResourceId;
         personList = list;
+        this.handler = handler;
 
     }
 
@@ -91,46 +85,41 @@ public class ListAdapter extends ArrayAdapter<MyListItem>{
         if(item != null){
             TextView text_name = (TextView) v.findViewById(R.id.name);
             TextView text_content = (TextView) v.findViewById(R.id.phone);
+            CheckBox checkBox_content = (CheckBox) v.findViewById(R.id.check);
 
             text_name.setText(item.getItemName());
             text_name.setTag(R.id.card_box1,position);
             text_content.setText(item.getItemContents());
             text_content.setTag(R.id.card_box1,position);
+            checkBox_content.setTag(R.id.card_box1, position);
 
-            text_name.setOnTouchListener(new View.OnTouchListener() {
+            text_name.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onTouch(View v, MotionEvent event) {
+                public void onClick(View v) {
+                    Log.d("db","onclick name: " + v.getTag(R.id.card_box1) + "-> position");
 
-                    Log.d("db", "layout rootLayout text");
-
-                    return false;
-                }
-            });
-            text_content.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-
-                    Log.d("db", "layout rootLayout content");
-
-                    return false;
                 }
             });
 
+            text_content.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    Log.d("db","onclick contents: " + v.getTag(R.id.card_box1) + "-> position");
+
+                }
+            });
+
+            checkBox_content.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    Log.d("db","onclick contents: " + v.getTag(R.id.card_box1) + "-> position");
+
+                    Message msg = handler.obtainMessage(0, String.valueOf(text_content.getText()));
+                    handler.sendMessage(msg);
+
+                }
+            });
         }
-
-        parent.setFocusable(false);
-        Log.d("parent", "parent id : " + parent.getId());
-
-        newListLayout = (LinearLayout) v.findViewById(R.id.newListLayout);
-        newListLayout.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-
-                Log.d("db", "layout rootLayout");
-
-                return false;
-            }
-        });
 
         return v;
     }
